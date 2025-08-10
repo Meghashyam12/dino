@@ -23,6 +23,8 @@ const hudLevelEl = document.getElementById('levelLabel');
 const pauseOverlayEl = document.getElementById('pauseOverlay');
 const gameOverEl = document.getElementById('gameOver');
 const finalScoreEl = document.getElementById('finalScore');
+const homeBtn = document.getElementById('homeBtn');
+const restartBtn = document.getElementById('restartBtn');
 
 const ctx = canvas.getContext('2d');
 
@@ -809,6 +811,25 @@ gameContainerEl.addEventListener('click', () => {
     game.restart();
   }
 });
+
+// Buttons in Game Over overlay
+if (homeBtn) {
+  homeBtn.addEventListener('click', () => {
+    // Return to start screen
+    cancelAnimationFrame(animationHandle);
+    game.paused = true;
+    game.running = false;
+    gameOverEl.classList.add('hidden');
+    pauseOverlayEl.classList.add('hidden');
+    startScreenEl.style.display = 'grid';
+    hudHiScoreEl.textContent = `HI ${String(storage.getHighScore(currentLevelKey)).padStart(5,'0')}`;
+  });
+}
+if (restartBtn) {
+  restartBtn.addEventListener('click', () => {
+    if (!game.running) game.restart();
+  });
+}
 
 // Visibility pause
 document.addEventListener('visibilitychange', () => {
