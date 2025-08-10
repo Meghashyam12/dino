@@ -148,8 +148,30 @@ body.no-scroll {
 .instructions .desktop-only { display: block; }
 
 @media (pointer: coarse), (max-width: 768px) {
-  .instructions .mobile-only { display: block; }
-  .instructions .desktop-only { display: none; }
+  :root {
+    --mobile-scale: 1.2;
+  }
+  body { font-size: calc(16px * var(--mobile-scale)); }
+  #startScreen .start-content { width: 96vw; padding: 20px; }
+  #startScreen .brand h1 { font-size: clamp(32px, 8vw, 64px); }
+  .avatar canvas { width: 84px; height: 84px; }
+  .avatar { padding: 12px; }
+  .levels .level { padding: 12px 16px; font-size: 16px; }
+  .primary, .secondary { padding: 14px 22px; font-size: 16px; }
+  #gameContainer.fullscreen { height: 100svh; }
+  .mobile-controls {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    transform: none;
+    background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,0.35));
+    padding: 10px 14px env(safe-area-inset-bottom);
+    justify-content: space-between;
+  }
+  .mobile-controls .primary, .mobile-controls .secondary {
+    min-width: 46vw;
+    padding: 16px 0;
+    font-size: 18px;
+  }
 }
 
 /* Animated background blobs */
