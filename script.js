@@ -38,6 +38,7 @@ const AvatarDrawers = [
     const s = scale;
     ctx.save();
     ctx.translate(x, y);
+    ctx.scale(-1, 1);
     // body
     ctx.fillStyle = tint;
     ctx.beginPath();
@@ -194,7 +195,7 @@ class Player {
     }
   }
   draw(ctx) {
-    const baseY = this.y + (this.isDucking ? (this.height - this.duckHeight) : 0);
+    const baseY = this.y;
     const scale = 1.0;
     AvatarDrawers[selectedAvatarIndex](ctx, this.x, baseY + 16, scale);
     // shadow
@@ -208,7 +209,7 @@ class Player {
   }
   getCollisionBox() {
     const h = this.isDucking ? this.duckHeight : this.height;
-    return { x: this.x - 18, y: this.y + (this.height - h), w: 36, h };
+    return { x: this.x - 18, y: this.y, w: 36, h };
   }
 }
 
