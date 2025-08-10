@@ -766,10 +766,25 @@ levelButtons.forEach(btn => {
   });
 });
 
-  startBtn.addEventListener('click', () => {
+function requestFullscreenIfPossible() {
+  const el = document.documentElement;
+  const rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+  try { rfs && rfs.call(el); } catch {}
+}
+
+function enterGameFullscreenIfMobile() {
+  if (!isMobileDevice()) return;
+  document.body.classList.add('no-scroll');
+  gameContainerEl.classList.add('fullscreen');
+  requestFullscreenIfPossible();
+  setTimeout(() => resizeCanvas(), 50);
+}
+
+startBtn.addEventListener('click', () => {
   startScreenEl.style.display = 'none';
   hudLevelEl.textContent = LEVELS[currentLevelKey].label;
   hudHiScoreEl.textContent = `HI ${String(storage.getHighScore(currentLevelKey)).padStart(5,'0')}`;
+  enterGameFullscreenIfMobile();
   resizeCanvas();
   game.reset();
   game.start();
@@ -885,55 +900,60 @@ let touchStartY = null;
 let touchStartTime = 0;
 let touchHoldInterval = null;
 let lastTapTime = 0;
+let isTouchDragging = false;
 
 canvas.addEventListener('touchstart', (e) => {
   if (!isMobileDevice()) return;
+  e.preventDefault();
   if (!game.running && !gameOverEl.classList.contains('hidden')) {
     game.restart();
     return;
   }
   if (e.touches.length > 1) return; // ignore multi-touch
   const now = performance.now();
-  if (now - lastTapTime < 280) {
-    inputState.isJumpQueued = true; // double tap: double jump buffer will handle
-  }
+  const delta = now - lastTapTime;
   lastTapTime = now;
   touchStartY = e.touches[0].clientY;
   touchStartTime = now;
-  // start duck on long-press intention
+  isTouchDragging = false;
   clearTimeout(touchHoldInterval);
   touchHoldInterval = setTimeout(() => {
     inputState.isDuckHeld = true;
-  }, 220);
-}, { passive: true });
+  }, 200);
+  if (delta > 60 && delta < 320) {
+    // consider as double-tap only if not dragging and within window
+    inputState.isJumpQueued = true;
+  }
+}, { passive: false });
 
 canvas.addEventListener('touchmove', (e) => {
   if (!isMobileDevice()) return;
+  e.preventDefault();
   if (touchStartY == null) return;
   const dy = e.touches[0].clientY - touchStartY;
-  if (dy > 36) {
-    // swipe down to duck
+  if (Math.abs(dy) > 6) isTouchDragging = true;
+  if (dy > 28) {
     inputState.isDuckHeld = true;
     clearTimeout(touchHoldInterval);
-  } else if (dy < -36) {
-    // swipe up to jump
+  } else if (dy < -28) {
     inputState.isDuckHeld = false;
     inputState.isJumpQueued = true;
     clearTimeout(touchHoldInterval);
   }
-}, { passive: true });
+}, { passive: false });
 
 canvas.addEventListener('touchend', (e) => {
   if (!isMobileDevice()) return;
+  e.preventDefault();
   const dt = performance.now() - touchStartTime;
   clearTimeout(touchHoldInterval);
-  // tap for jump when not a long-press
-  if (dt < 200) {
+  if (!isTouchDragging && dt < 180) {
     inputState.isJumpQueued = true;
   }
   inputState.isDuckHeld = false;
   touchStartY = null;
-}, { passive: true });
+  isTouchDragging = false;
+}, { passive: false });
 
 // On-screen buttons
 btnJump?.addEventListener('click', () => { inputState.isJumpQueued = true; });
