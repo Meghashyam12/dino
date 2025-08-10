@@ -123,7 +123,7 @@ const LEVELS = {
     baseSpeed: 6,
     cycleSeconds: 48,
     spawnIntervalMs: [1200, 1700],
-    obstacleTypes: ['cactusSmall','cactusLarge','ptera','tumbleweed'],
+    obstacleTypes: ['cactusSmall','cactusLarge','ptera','pteraLow','tumbleweed'],
     sky: { dayTop: '#bfe7ff', dayBottom: '#f6fbff', nightTop: '#0b1730', nightBottom: '#0f1d3d' },
   },
   medium: {
@@ -131,7 +131,7 @@ const LEVELS = {
     baseSpeed: 8,
     cycleSeconds: 38,
     spawnIntervalMs: [950, 1350],
-    obstacleTypes: ['cactusSmall','cactusLarge','ptera','tumbleweed','boulder','firepit'],
+    obstacleTypes: ['cactusSmall','cactusLarge','ptera','pteraLow','tumbleweed','boulder','firepit','barHigh'],
     sky: { dayTop: '#b1e0ff', dayBottom: '#eef8ff', nightTop: '#081427', nightBottom: '#0c1833' },
   },
   hard: {
@@ -139,7 +139,7 @@ const LEVELS = {
     baseSpeed: 11,
     cycleSeconds: 28,
     spawnIntervalMs: [700, 1050],
-    obstacleTypes: ['cactusSmall','cactusLarge','ptera','tumbleweed','boulder','firepit','spikeStack'],
+    obstacleTypes: ['cactusSmall','cactusLarge','ptera','pteraLow','tumbleweed','boulder','firepit','spikeStack','barHigh'],
     sky: { dayTop: '#a7daff', dayBottom: '#e9f5ff', nightTop: '#071022', nightBottom: '#0a152b' },
   },
 };
@@ -286,6 +286,8 @@ class Obstacle {
         this.w = 32; this.h = 56; this.y = groundY - this.h; break;
       case 'ptera':
         this.w = 46; this.h = 24; this.y = groundY - choose([110, 140, 170]); this.flap = 0; break;
+      case 'pteraLow':
+        this.w = 46; this.h = 24; this.y = groundY - 70; this.flap = 0; break; // requires duck
       case 'boulder':
         this.r = 18; this.spin = 0; this.y = groundY - this.r*2; this.w = this.h = this.r*2; break;
       case 'tumbleweed':
@@ -294,6 +296,8 @@ class Obstacle {
         this.w = 42; this.h = 14; this.y = groundY - this.h; this.flicker = 0; break;
       case 'spikeStack':
         this.w = 44; this.h = 28; this.y = groundY - this.h; break;
+      case 'barHigh':
+        this.w = 54; this.h = 14; this.y = groundY - 86; break; // overhead bar to duck under
       default:
         this.w = 24; this.h = 32; this.y = groundY - this.h; break;
     }
@@ -322,6 +326,7 @@ class Obstacle {
         drawCactus(ctx, this.x, this.y, this.w, this.h, '#007f5f');
         break;
       case 'ptera':
+      case 'pteraLow':
         drawPterodactyl(ctx, this.x, this.y, this.w, this.h, this.flap);
         break;
       case 'boulder':
@@ -335,6 +340,9 @@ class Obstacle {
         break;
       case 'spikeStack':
         drawSpikes(ctx, this.x, this.y, this.w, this.h);
+        break;
+      case 'barHigh':
+        drawOverheadBar(ctx, this.x, this.y, this.w, this.h);
         break;
     }
     ctx.restore();
@@ -466,6 +474,13 @@ function drawSpikes(ctx, x, y, w, h) {
     ctx.lineTo(x + (i+1)*step, y+h);
     ctx.fill();
   }
+}
+
+function drawOverheadBar(ctx, x, y, w, h) {
+  ctx.fillStyle = '#6c757d';
+  ctx.fillRect(x, y, w, h);
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  ctx.fillRect(x, y, w, 2);
 }
 
 function drawCloud(ctx, x, y, scale) {
