@@ -896,11 +896,9 @@ updateControlsVisibility();
 window.addEventListener('resize', updateControlsVisibility);
 
 // Touch/gesture handlers
-let touchStartY = null;
 let touchStartTime = 0;
 let touchHoldInterval = null;
-let lastTapTime = 0;
-let isTouchDragging = false;
+let holdTriggered = false;
 
 canvas.addEventListener('touchstart', (e) => {
   if (!isMobileDevice()) return;
@@ -911,23 +909,20 @@ canvas.addEventListener('touchstart', (e) => {
   }
   if (e.touches.length > 1) return; // ignore multi-touch
   const now = performance.now();
-  const delta = now - lastTapTime;
-  lastTapTime = now;
   touchStartTime = now;
-  isTouchDragging = false;
+  holdTriggered = false;
   clearTimeout(touchHoldInterval);
   touchHoldInterval = setTimeout(() => {
     inputState.isDuckHeld = true;
+    holdTriggered = true;
   }, 220);
-  if (delta > 80 && delta < 320) {
-    inputState.isJumpQueued = true; // double tap
-  }
+  // Do not enqueue jump here; wait for touchend to decide (prevents jump-before-duck)
 }, { passive: false });
 
 canvas.addEventListener('touchmove', (e) => {
   if (!isMobileDevice()) return;
   e.preventDefault();
-  // Disable swipe interpretation for now to avoid browser conflicts
+  // If finger moves, keep duck if hold has started; otherwise ignore to avoid accidental swipe actions
 }, { passive: false });
 
 canvas.addEventListener('touchend', (e) => {
@@ -935,10 +930,13 @@ canvas.addEventListener('touchend', (e) => {
   e.preventDefault();
   const dt = performance.now() - touchStartTime;
   clearTimeout(touchHoldInterval);
-  if (dt < 200) {
+  if (!holdTriggered && dt < 200) {
+    // quick tap -> jump
     inputState.isJumpQueued = true;
   }
+  // if holdTriggered, we were ducking; release duck on end without jumping
   inputState.isDuckHeld = false;
+  holdTriggered = false;
 }, { passive: false });
 
 // On-screen buttons
