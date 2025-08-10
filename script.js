@@ -782,12 +782,14 @@ function enterGameFullscreenIfMobile() {
 
 startBtn.addEventListener('click', () => {
   startScreenEl.style.display = 'none';
+  gameContainerEl.classList.remove('hidden');
   hudLevelEl.textContent = LEVELS[currentLevelKey].label;
   hudHiScoreEl.textContent = `HI ${String(storage.getHighScore(currentLevelKey)).padStart(5,'0')}`;
   enterGameFullscreenIfMobile();
   resizeCanvas();
   game.reset();
   game.start();
+  updateControlsVisibility();
 });
 
 // Controls
@@ -821,6 +823,7 @@ window.addEventListener('keyup', (e) => {
 
 // Mouse / Pointer controls on the canvas
 canvas.addEventListener('pointerdown', (e) => {
+  if (isMobileDevice()) return; // ignore taps on mobile
   if (!game.running && !gameOverEl.classList.contains('hidden')) {
     game.restart();
     return;
@@ -832,11 +835,13 @@ canvas.addEventListener('pointerdown', (e) => {
   }
 });
 canvas.addEventListener('pointerup', (e) => {
+  if (isMobileDevice()) return; // ignore taps on mobile
   if (e.button === 2) {
     handleDuckUp();
   }
 });
 canvas.addEventListener('dblclick', (e) => {
+  if (isMobileDevice()) return; // ignore taps on mobile
   e.preventDefault();
   handleJumpRequest(); // second jump
 });
@@ -858,7 +863,9 @@ if (homeBtn) {
     gameOverEl.classList.add('hidden');
     pauseOverlayEl.classList.add('hidden');
     startScreenEl.style.display = 'grid';
+    gameContainerEl.classList.add('hidden');
     hudHiScoreEl.textContent = `HI ${String(storage.getHighScore(currentLevelKey)).padStart(5,'0')}`;
+    updateControlsVisibility();
   });
 }
 if (restartBtn) {
@@ -883,7 +890,7 @@ function isMobileDevice() {
 
 function updateControlsVisibility() {
   const isMobile = isMobileDevice();
-  if (isMobile) {
+  if (isMobile && game.running) {
     mobileControlsEl?.classList.remove('hidden');
     mobileControlsEl?.setAttribute('aria-hidden', 'false');
   } else {
@@ -895,48 +902,18 @@ function updateControlsVisibility() {
 updateControlsVisibility();
 window.addEventListener('resize', updateControlsVisibility);
 
-// Touch/gesture handlers
-let touchStartTime = 0;
-let touchHoldInterval = null;
-let holdTriggered = false;
-
+// Disable all canvas touch gestures on mobile; we use buttons only
 canvas.addEventListener('touchstart', (e) => {
   if (!isMobileDevice()) return;
   e.preventDefault();
-  if (!game.running && !gameOverEl.classList.contains('hidden')) {
-    game.restart();
-    return;
-  }
-  if (e.touches.length > 1) return; // ignore multi-touch
-  const now = performance.now();
-  touchStartTime = now;
-  holdTriggered = false;
-  clearTimeout(touchHoldInterval);
-  touchHoldInterval = setTimeout(() => {
-    inputState.isDuckHeld = true;
-    holdTriggered = true;
-  }, 220);
-  // Do not enqueue jump here; wait for touchend to decide (prevents jump-before-duck)
 }, { passive: false });
-
 canvas.addEventListener('touchmove', (e) => {
   if (!isMobileDevice()) return;
   e.preventDefault();
-  // If finger moves, keep duck if hold has started; otherwise ignore to avoid accidental swipe actions
 }, { passive: false });
-
 canvas.addEventListener('touchend', (e) => {
   if (!isMobileDevice()) return;
   e.preventDefault();
-  const dt = performance.now() - touchStartTime;
-  clearTimeout(touchHoldInterval);
-  if (!holdTriggered && dt < 200) {
-    // quick tap -> jump
-    inputState.isJumpQueued = true;
-  }
-  // if holdTriggered, we were ducking; release duck on end without jumping
-  inputState.isDuckHeld = false;
-  holdTriggered = false;
 }, { passive: false });
 
 // On-screen buttons
