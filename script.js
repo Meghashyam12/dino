@@ -2,11 +2,11 @@
 
 // Persistent state
 const storage = {
-  get highScore() {
-    try { return Number(localStorage.getItem('sdr_high_score') || 0); } catch { return 0; }
+  getHighScore(mode) {
+    try { return Number(localStorage.getItem(`sdr_high_score_${mode}`) || 0); } catch { return 0; }
   },
-  set highScore(v) {
-    try { localStorage.setItem('sdr_high_score', String(v)); } catch {}
+  setHighScore(mode, v) {
+    try { localStorage.setItem(`sdr_high_score_${mode}`, String(v)); } catch {}
   }
 };
 
@@ -79,6 +79,34 @@ const AvatarDrawers = [
   // Mint Frost
   (ctx, x, y, scale) => AvatarDrawers[0](ctx, x, y, scale, '#6ff6e8'),
 ];
+
+function drawAvatarCrouch(ctx, x, y, scale) {
+  // Draw a compact crouched variant facing right by reusing the base shape scaled and shifted
+  const s = scale;
+  ctx.save();
+  ctx.translate(x, y + 6 * s);
+  ctx.scale(-1, 1);
+  // body squashed
+  ctx.fillStyle = '#3be7a9';
+  ctx.beginPath();
+  ctx.roundRect(-20*s, -12*s, 40*s, 18*s, 6*s);
+  ctx.fill();
+  // head closer to body
+  ctx.beginPath();
+  ctx.roundRect(-22*s, -22*s, 20*s, 12*s, 5*s);
+  ctx.fill();
+  // tail shorter
+  ctx.beginPath();
+  ctx.moveTo(14*s, -4*s); ctx.lineTo(24*s, -1*s); ctx.lineTo(14*s, 2*s); ctx.closePath();
+  ctx.fill();
+  // legs tucked
+  ctx.fillRect(-8*s, 6*s, 10*s, 6*s);
+  ctx.fillRect(2*s, 6*s, 10*s, 6*s);
+  // eye
+  ctx.fillStyle = '#08131f';
+  ctx.beginPath(); ctx.arc(-10*s, -16*s, 2.0*s, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+}
 
 // Level configurations
 const LEVELS = {
@@ -192,9 +220,11 @@ class Player {
 
     const targetHeight = this.isDucking ? this.duckHeight : this.height;
     if (this.isOnGround) {
-      // small bob while running
-      this.runTimer += delta * (worldSpeed / 6);
-      const bob = Math.sin(this.runTimer * 0.02) * 1.2;
+      // small bob while running (disabled while ducking)
+      if (!this.isDucking) {
+        this.runTimer += delta * (worldSpeed / 6);
+      }
+      const bob = this.isDucking ? 0 : Math.sin(this.runTimer * 0.02) * 1.2;
       this.y = this.groundY - targetHeight + bob;
       this.velocityY = 0;
     }
@@ -215,7 +245,8 @@ class Player {
   draw(ctx) {
     const baseY = this.y;
     const scale = 1.0;
-    AvatarDrawers[selectedAvatarIndex](ctx, this.x, baseY + 16, scale);
+    const drawer = this.isDucking ? drawAvatarCrouch : AvatarDrawers[selectedAvatarIndex];
+    drawer(ctx, this.x, baseY + 16, scale);
     // shadow
     ctx.save();
     ctx.globalAlpha = 0.25;
@@ -484,7 +515,7 @@ class Game {
     this.running = false;
     this.paused = false;
     this.score = 0;
-    this.hiScore = storage.highScore || 0;
+    this.hiScore = storage.getHighScore(currentLevelKey) || 0;
     this.worldSpeed = LEVELS[currentLevelKey].baseSpeed;
     this.spawnTimerMs = 0;
     this.nextSpawnInMs = randInt(...LEVELS[currentLevelKey].spawnIntervalMs);
@@ -523,8 +554,9 @@ class Game {
     this.paused = true;
     gameOverEl.classList.remove('hidden');
     finalScoreEl.textContent = `Score: ${String(this.score).padStart(5,'0')}`;
-    storage.highScore = Math.max(this.hiScore, this.score);
-    hudHiScoreEl.textContent = `HI ${String(storage.highScore).padStart(5,'0')}`;
+    const newHi = Math.max(this.hiScore, this.score);
+    storage.setHighScore(currentLevelKey, newHi);
+    hudHiScoreEl.textContent = `HI ${String(newHi).padStart(5,'0')}`;
   }
   restart() {
     gameOverEl.classList.add('hidden');
@@ -706,13 +738,15 @@ levelButtons.forEach(btn => {
     levelButtons.forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
     currentLevelKey = btn.dataset.level;
+    hudLevelEl.textContent = LEVELS[currentLevelKey].label;
+    hudHiScoreEl.textContent = `HI ${String(storage.getHighScore(currentLevelKey)).padStart(5,'0')}`;
   });
 });
 
-startBtn.addEventListener('click', () => {
+  startBtn.addEventListener('click', () => {
   startScreenEl.style.display = 'none';
   hudLevelEl.textContent = LEVELS[currentLevelKey].label;
-  hudHiScoreEl.textContent = `HI ${String(storage.highScore).padStart(5,'0')}`;
+  hudHiScoreEl.textContent = `HI ${String(storage.getHighScore(currentLevelKey)).padStart(5,'0')}`;
   resizeCanvas();
   game.reset();
   game.start();
