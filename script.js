@@ -884,6 +884,7 @@ window.addEventListener('resize', updateControlsVisibility);
 let touchStartY = null;
 let touchStartTime = 0;
 let touchHoldInterval = null;
+let lastTapTime = 0;
 
 canvas.addEventListener('touchstart', (e) => {
   if (!isMobileDevice()) return;
@@ -892,23 +893,29 @@ canvas.addEventListener('touchstart', (e) => {
     return;
   }
   if (e.touches.length > 1) return; // ignore multi-touch
+  const now = performance.now();
+  if (now - lastTapTime < 280) {
+    inputState.isJumpQueued = true; // double tap: double jump buffer will handle
+  }
+  lastTapTime = now;
   touchStartY = e.touches[0].clientY;
-  touchStartTime = performance.now();
+  touchStartTime = now;
   // start duck on long-press intention
+  clearTimeout(touchHoldInterval);
   touchHoldInterval = setTimeout(() => {
     inputState.isDuckHeld = true;
-  }, 260);
+  }, 220);
 }, { passive: true });
 
 canvas.addEventListener('touchmove', (e) => {
   if (!isMobileDevice()) return;
   if (touchStartY == null) return;
   const dy = e.touches[0].clientY - touchStartY;
-  if (dy > 40) {
+  if (dy > 36) {
     // swipe down to duck
     inputState.isDuckHeld = true;
     clearTimeout(touchHoldInterval);
-  } else if (dy < -40) {
+  } else if (dy < -36) {
     // swipe up to jump
     inputState.isDuckHeld = false;
     inputState.isJumpQueued = true;
@@ -921,7 +928,7 @@ canvas.addEventListener('touchend', (e) => {
   const dt = performance.now() - touchStartTime;
   clearTimeout(touchHoldInterval);
   // tap for jump when not a long-press
-  if (dt < 250) {
+  if (dt < 200) {
     inputState.isJumpQueued = true;
   }
   inputState.isDuckHeld = false;
