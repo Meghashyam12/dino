@@ -25,6 +25,9 @@ const gameOverEl = document.getElementById('gameOver');
 const finalScoreEl = document.getElementById('finalScore');
 const homeBtn = document.getElementById('homeBtn');
 const restartBtn = document.getElementById('restartBtn');
+const mobileControlsEl = document.getElementById('mobileControls');
+const btnJump = document.getElementById('btnJump');
+const btnDuck = document.getElementById('btnDuck');
 
 const ctx = canvas.getContext('2d');
 
@@ -843,3 +846,76 @@ document.addEventListener('visibilitychange', () => {
 
 // Expose for console debugging
 window.__sdr = { game };
+
+function isMobileDevice() {
+  return /Mobi|Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent) || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+}
+
+function updateControlsVisibility() {
+  const isMobile = isMobileDevice();
+  if (isMobile) {
+    mobileControlsEl?.classList.remove('hidden');
+    mobileControlsEl?.setAttribute('aria-hidden', 'false');
+  } else {
+    mobileControlsEl?.classList.add('hidden');
+    mobileControlsEl?.setAttribute('aria-hidden', 'true');
+  }
+}
+
+updateControlsVisibility();
+window.addEventListener('resize', updateControlsVisibility);
+
+// Touch/gesture handlers
+let touchStartY = null;
+let touchStartTime = 0;
+let touchHoldInterval = null;
+
+canvas.addEventListener('touchstart', (e) => {
+  if (!isMobileDevice()) return;
+  if (!game.running && !gameOverEl.classList.contains('hidden')) {
+    game.restart();
+    return;
+  }
+  if (e.touches.length > 1) return; // ignore multi-touch
+  touchStartY = e.touches[0].clientY;
+  touchStartTime = performance.now();
+  // start duck on long-press intention
+  touchHoldInterval = setTimeout(() => {
+    inputState.isDuckHeld = true;
+  }, 260);
+}, { passive: true });
+
+canvas.addEventListener('touchmove', (e) => {
+  if (!isMobileDevice()) return;
+  if (touchStartY == null) return;
+  const dy = e.touches[0].clientY - touchStartY;
+  if (dy > 40) {
+    // swipe down to duck
+    inputState.isDuckHeld = true;
+    clearTimeout(touchHoldInterval);
+  } else if (dy < -40) {
+    // swipe up to jump
+    inputState.isDuckHeld = false;
+    inputState.isJumpQueued = true;
+    clearTimeout(touchHoldInterval);
+  }
+}, { passive: true });
+
+canvas.addEventListener('touchend', (e) => {
+  if (!isMobileDevice()) return;
+  const dt = performance.now() - touchStartTime;
+  clearTimeout(touchHoldInterval);
+  // tap for jump when not a long-press
+  if (dt < 250) {
+    inputState.isJumpQueued = true;
+  }
+  inputState.isDuckHeld = false;
+  touchStartY = null;
+}, { passive: true });
+
+// On-screen buttons
+btnJump?.addEventListener('click', () => { inputState.isJumpQueued = true; });
+btnDuck?.addEventListener('mousedown', () => { inputState.isDuckHeld = true; });
+btnDuck?.addEventListener('mouseup', () => { inputState.isDuckHeld = false; });
+btnDuck?.addEventListener('touchstart', () => { inputState.isDuckHeld = true; }, { passive: true });
+btnDuck?.addEventListener('touchend', () => { inputState.isDuckHeld = false; }, { passive: true });
