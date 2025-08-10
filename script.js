@@ -786,10 +786,15 @@ startBtn.addEventListener('click', () => {
   hudLevelEl.textContent = LEVELS[currentLevelKey].label;
   hudHiScoreEl.textContent = `HI ${String(storage.getHighScore(currentLevelKey)).padStart(5,'0')}`;
   enterGameFullscreenIfMobile();
-  resizeCanvas();
-  game.reset();
-  game.start();
-  updateControlsVisibility();
+  // Wait for layout to settle before sizing and starting
+  requestAnimationFrame(() => {
+    resizeCanvas();
+    requestAnimationFrame(() => {
+      game.reset();
+      game.start();
+      updateControlsVisibility();
+    });
+  });
 });
 
 // Controls

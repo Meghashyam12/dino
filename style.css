@@ -149,28 +149,31 @@ body.no-scroll {
 
 @media (pointer: coarse), (max-width: 768px) {
   :root {
-    --mobile-scale: 1.2;
+    --mobile-scale: 1.3;
   }
   body { font-size: calc(16px * var(--mobile-scale)); }
-  #startScreen .start-content { width: 96vw; padding: 20px; }
-  #startScreen .brand h1 { font-size: clamp(32px, 8vw, 64px); }
-  .avatar canvas { width: 84px; height: 84px; }
-  .avatar { padding: 12px; }
-  .levels .level { padding: 12px 16px; font-size: 16px; }
-  .primary, .secondary { padding: 14px 22px; font-size: 16px; }
+  #startScreen .start-content { width: 98vw; padding: 24px; }
+  #startScreen .brand h1 { font-size: clamp(36px, 9vw, 72px); }
+  .avatars { grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .avatar canvas { width: 96px; height: 96px; }
+  .avatar { padding: 14px; }
+  .levels .level { padding: 14px 18px; font-size: 18px; }
+  .primary, .secondary { padding: 16px 24px; font-size: 18px; }
   #gameContainer.fullscreen { height: 100svh; }
   .mobile-controls {
     position: fixed;
     left: 0; right: 0; bottom: 0;
     transform: none;
     background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,0.35));
-    padding: 10px 14px env(safe-area-inset-bottom);
-    justify-content: space-between;
+    padding: 12px 12px calc(env(safe-area-inset-bottom) + 10px);
+    justify-content: center;
   }
   .mobile-controls .primary, .mobile-controls .secondary {
-    min-width: 46vw;
-    padding: 16px 0;
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 18px 0;
     font-size: 18px;
+    max-width: 48%;
   }
 }
 
@@ -256,6 +259,7 @@ body.no-scroll {
   display: flex;
   gap: 12px;
   z-index: 3;
+  justify-content: center;
 }
 .mobile-controls.hidden { display: none; }
 .mobile-controls .primary {
