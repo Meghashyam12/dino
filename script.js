@@ -22,6 +22,7 @@ const hudHiScoreEl = document.getElementById('hiScore');
 const hudLevelEl = document.getElementById('levelLabel');
 const pauseOverlayEl = document.getElementById('pauseOverlay');
 const gameOverEl = document.getElementById('gameOver');
+const finalScoreEl = document.getElementById('finalScore');
 
 const ctx = canvas.getContext('2d');
 
@@ -148,6 +149,9 @@ class Player {
     this.doubleJumpAvailable = false;
     this.runFrame = 0;
     this.runTimer = 0;
+    this.timeSinceGroundedMs = 0;
+    this.coyoteMs = 120;
+    this.jumpCeilingY = 20;
   }
   reset(groundY) {
     this.groundY = groundY;
@@ -159,12 +163,14 @@ class Player {
     this.doubleJumpAvailable = false;
     this.runFrame = 0;
     this.runTimer = 0;
+    this.timeSinceGroundedMs = 0;
   }
   tryJump() {
-    if (this.isOnGround) {
+    if (this.isOnGround || this.timeSinceGroundedMs < this.coyoteMs) {
       this.velocityY = -this.jumpStrength;
       this.isOnGround = false;
       this.doubleJumpAvailable = true;
+      this.timeSinceGroundedMs = this.coyoteMs; // consume coyote
     } else if (this.doubleJumpAvailable) {
       this.velocityY = -this.doubleJumpStrength;
       this.doubleJumpAvailable = false;
@@ -178,6 +184,12 @@ class Player {
     this.velocityY += this.gravity * (delta / (1000/60));
     this.y += this.velocityY;
 
+    // Prevent exiting top of screen
+    if (this.y < this.jumpCeilingY) {
+      this.y = this.jumpCeilingY;
+      if (this.velocityY < 0) this.velocityY = 0;
+    }
+
     const targetHeight = this.isDucking ? this.duckHeight : this.height;
     if (this.isOnGround) {
       // small bob while running
@@ -189,9 +201,15 @@ class Player {
 
     if (this.y + targetHeight >= this.groundY) {
       this.y = this.groundY - targetHeight;
-      this.isOnGround = true;
+      if (!this.isOnGround) {
+        this.isOnGround = true;
+        this.timeSinceGroundedMs = 0;
+      } else {
+        this.isOnGround = true;
+      }
     } else {
       this.isOnGround = false;
+      this.timeSinceGroundedMs += delta;
     }
   }
   draw(ctx) {
@@ -477,6 +495,8 @@ class Game {
     this.player = new Player();
     this.player.reset(this.groundY);
     this._ensureClouds();
+    this.lastJumpPressedMs = -9999;
+    this.jumpBufferMs = 120;
   }
   start() {
     this.running = true;
@@ -500,7 +520,9 @@ class Game {
   }
   gameOver() {
     this.running = false;
+    this.paused = true;
     gameOverEl.classList.remove('hidden');
+    finalScoreEl.textContent = `Score: ${String(this.score).padStart(5,'0')}`;
     storage.highScore = Math.max(this.hiScore, this.score);
     hudHiScoreEl.textContent = `HI ${String(storage.highScore).padStart(5,'0')}`;
   }
@@ -555,10 +577,16 @@ class Game {
     this.obstacles = this.obstacles.filter(o => !o.remove);
 
     // Handle input
+    // Jump buffer: remember recent jump inputs briefly
     if (inputState.isJumpQueued) {
-      this.player.tryJump();
+      this.lastJumpPressedMs = performance.now();
       inputState.isJumpQueued = false;
     }
+    if (performance.now() - this.lastJumpPressedMs <= this.jumpBufferMs) {
+      this.player.tryJump();
+      this.lastJumpPressedMs = -9999;
+    }
+
     this.player.setDuck(inputState.isDuckHeld);
 
     // Update player
@@ -691,7 +719,7 @@ startBtn.addEventListener('click', () => {
 });
 
 // Controls
-function handleJumpRequest() { inputState.isJumpQueued = true; }
+function handleJumpRequest() { inputState.isJumpQueued = true; } // buffered
 function handleDuckDown() { inputState.isDuckHeld = true; }
 function handleDuckUp() { inputState.isDuckHeld = false; }
 
