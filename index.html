@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
     <title>Super Dino Run</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -59,14 +59,17 @@
         <button id="startBtn" class="primary">Play</button>
 
         <div class="instructions">
-          <div>
+          <div class="desktop-only">
             <strong>Keyboard</strong>: Space/Up/W = Jump, Down/S = Duck, Double Space = Double Jump
           </div>
-          <div>
+          <div class="desktop-only">
             <strong>Mouse</strong>: Left Click = Jump, Right Click (hold) = Duck, Double Click = Double Jump
           </div>
-          <div>
+          <div class="desktop-only">
             <strong>Other</strong>: P = Pause/Resume, R = Restart
+          </div>
+          <div class="mobile-only">
+            <strong>Touch</strong>: Tap = Jump, Double Tap = Double Jump, Hold/Swipe Down = Duck, Swipe Up = Jump
           </div>
         </div>
       </div>

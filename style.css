@@ -141,6 +141,13 @@ body {
 .actions { display: flex; gap: 10px; align-items: center; justify-content: center; margin-top: 10px; }
 
 .instructions { margin-top: 16px; color: #c1c9d8; display: grid; gap: 6px; font-size: 14px; }
+.instructions .mobile-only { display: none; }
+.instructions .desktop-only { display: block; }
+
+@media (pointer: coarse), (max-width: 768px) {
+  .instructions .mobile-only { display: block; }
+  .instructions .desktop-only { display: none; }
+}
 
 /* Animated background blobs */
 .start-bg { position: absolute; inset: -20% -10% -10% -10%; z-index: 1; overflow: hidden; }
