@@ -169,6 +169,7 @@ body {
   display: block;
   overflow: hidden;
   border-bottom: 1px solid rgba(255,255,255,0.08);
+  touch-action: manipulation;
 }
 
 #gameCanvas {
@@ -176,6 +177,7 @@ body {
   width: 100%;
   height: 100%;
   background: linear-gradient(180deg, #bfe7ff 0%, #f6fbff 60%);
+  touch-action: none; /* prevent scroll on swipe */
 }
 
 #hud {
@@ -210,7 +212,19 @@ body {
   box-shadow: 0 10px 40px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.06);
 }
 
+.mobile-controls {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12px;
+  z-index: 3;
+}
+.mobile-controls.hidden { display: none; }
+
 @media (max-width: 640px) {
   #gameContainer { height: clamp(260px, 46vh, 420px); }
   .avatars { grid-template-columns: repeat(3, 1fr); }
+  .mobile-controls.hidden { display: flex; }
 }
