@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Super Dino Run</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body oncontextmenu="return false;">
+    <div id="startScreen" class="screen">
+      <div class="start-content">
+        <div class="brand">
+          <h1>Super Dino Run</h1>
+          <p class="tagline">Colorful. Faster. Smarter. Day & Night Adventure.</p>
+        </div>
+
+        <div class="option-group">
+          <h2>Choose your Dino</h2>
+          <div id="avatarList" class="avatars">
+            <button class="avatar selected" data-avatar="0" aria-label="Emerald Rex">
+              <canvas width="72" height="72"></canvas>
+              <span>Emerald</span>
+            </button>
+            <button class="avatar" data-avatar="1" aria-label="Crimson Blaze">
+              <canvas width="72" height="72"></canvas>
+              <span>Crimson</span>
+            </button>
+            <button class="avatar" data-avatar="2" aria-label="Azure Nova">
+              <canvas width="72" height="72"></canvas>
+              <span>Azure</span>
+            </button>
+            <button class="avatar" data-avatar="3" aria-label="Violet Storm">
+              <canvas width="72" height="72"></canvas>
+              <span>Violet</span>
+            </button>
+            <button class="avatar" data-avatar="4" aria-label="Solar Gold">
+              <canvas width="72" height="72"></canvas>
+              <span>Solar</span>
+            </button>
+            <button class="avatar" data-avatar="5" aria-label="Mint Frost">
+              <canvas width="72" height="72"></canvas>
+              <span>Mint</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="option-group">
+          <h2>Difficulty</h2>
+          <div class="levels">
+            <button class="level selected" data-level="easy">Easy</button>
+            <button class="level" data-level="medium">Medium</button>
+            <button class="level" data-level="hard">Hard</button>
+          </div>
+        </div>
+
+        <button id="startBtn" class="primary">Play</button>
+
+        <div class="instructions">
+          <div>
+            <strong>Keyboard</strong>: Space/Up/W = Jump, Down/S = Duck, Double Space = Double Jump
+          </div>
+          <div>
+            <strong>Mouse</strong>: Left Click = Jump, Right Click (hold) = Duck, Double Click = Double Jump
+          </div>
+          <div>
+            <strong>Other</strong>: P = Pause/Resume, R = Restart
+          </div>
+        </div>
+      </div>
+      <div class="start-bg" aria-hidden="true">
+        <div class="blob b1"></div>
+        <div class="blob b2"></div>
+        <div class="blob b3"></div>
+      </div>
+    </div>
+
+    <div id="gameContainer">
+      <canvas id="gameCanvas" aria-label="Super Dino Run Game Canvas"></canvas>
+      <div id="hud">
+        <div class="hud-left">
+          <span id="levelLabel">Easy</span>
+        </div>
+        <div class="hud-right">
+          <span id="hiScore">HI 00000</span>
+          <span id="score">00000</span>
+        </div>
+      </div>
+
+      <div id="pauseOverlay" class="overlay hidden">
+        <div class="overlay-card">
+          <h3>Paused</h3>
+          <p>Press P to resume</p>
+        </div>
+      </div>
+
+      <div id="gameOver" class="overlay hidden">
+        <div class="overlay-card">
+          <h3>Game Over</h3>
+          <p>Click or press R to restart</p>
+        </div>
+      </div>
+    </div>
+
+    <script src="/script.js" defer></script>
+  </body>
+</html>
