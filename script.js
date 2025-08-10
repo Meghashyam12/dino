@@ -82,14 +82,17 @@ const AvatarDrawers = [
   (ctx, x, y, scale) => AvatarDrawers[0](ctx, x, y, scale, '#6ff6e8'),
 ];
 
+const AVATAR_TINTS = ['#2df8a0', '#ff5765', '#52a7ff', '#b16cff', '#ffd166', '#6ff6e8'];
+
 function drawAvatarCrouch(ctx, x, y, scale) {
   // Draw a compact crouched variant facing right by reusing the base shape scaled and shifted
   const s = scale;
+  const tint = AVATAR_TINTS[selectedAvatarIndex] || '#2df8a0';
   ctx.save();
   ctx.translate(x, y + 6 * s);
   ctx.scale(-1, 1);
   // body squashed
-  ctx.fillStyle = '#3be7a9';
+  ctx.fillStyle = tint;
   ctx.beginPath();
   ctx.roundRect(-20*s, -12*s, 40*s, 18*s, 6*s);
   ctx.fill();
