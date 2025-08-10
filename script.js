@@ -913,33 +913,21 @@ canvas.addEventListener('touchstart', (e) => {
   const now = performance.now();
   const delta = now - lastTapTime;
   lastTapTime = now;
-  touchStartY = e.touches[0].clientY;
   touchStartTime = now;
   isTouchDragging = false;
   clearTimeout(touchHoldInterval);
   touchHoldInterval = setTimeout(() => {
     inputState.isDuckHeld = true;
-  }, 200);
-  if (delta > 60 && delta < 320) {
-    // consider as double-tap only if not dragging and within window
-    inputState.isJumpQueued = true;
+  }, 220);
+  if (delta > 80 && delta < 320) {
+    inputState.isJumpQueued = true; // double tap
   }
 }, { passive: false });
 
 canvas.addEventListener('touchmove', (e) => {
   if (!isMobileDevice()) return;
   e.preventDefault();
-  if (touchStartY == null) return;
-  const dy = e.touches[0].clientY - touchStartY;
-  if (Math.abs(dy) > 6) isTouchDragging = true;
-  if (dy > 28) {
-    inputState.isDuckHeld = true;
-    clearTimeout(touchHoldInterval);
-  } else if (dy < -28) {
-    inputState.isDuckHeld = false;
-    inputState.isJumpQueued = true;
-    clearTimeout(touchHoldInterval);
-  }
+  // Disable swipe interpretation for now to avoid browser conflicts
 }, { passive: false });
 
 canvas.addEventListener('touchend', (e) => {
@@ -947,12 +935,10 @@ canvas.addEventListener('touchend', (e) => {
   e.preventDefault();
   const dt = performance.now() - touchStartTime;
   clearTimeout(touchHoldInterval);
-  if (!isTouchDragging && dt < 180) {
+  if (dt < 200) {
     inputState.isJumpQueued = true;
   }
   inputState.isDuckHeld = false;
-  touchStartY = null;
-  isTouchDragging = false;
 }, { passive: false });
 
 // On-screen buttons
